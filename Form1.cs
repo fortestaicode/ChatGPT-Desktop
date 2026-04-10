@@ -17,43 +17,46 @@ namespace ChatGPTLite
 
             InitWebView();
         }
+private async void InitWebView()
+{
+    webView = new WebView2 { Dock = DockStyle.Fill };
+    this.Controls.Add(webView);
 
-        private async void InitWebView()
-        {
-            try
-            {
-                webView = new WebView2
-                {
-                    Dock = DockStyle.Fill
-                };
+    // وسائط تشغيل قوية جداً لفرض استخدام كارت الشاشة وتعطيل العمليات الثقيلة
+    var options = new CoreWebView2EnvironmentOptions(
+        additionalBrowserArguments: "--enable-gpu-rasterization --ignore-gpu-blocklist --disable-low-res-tiling --disable-features=Translate"
+    );
 
-                this.Controls.Add(webView);
+    var env = await CoreWebView2Environment.CreateAsync(null, null, options);
+    await webView.EnsureCoreWebView2Async(env);
 
-                var env = await CoreWebView2Environment.CreateAsync(
-                    null,
-                    null,
-                    new CoreWebView2EnvironmentOptions
-                    {
-                        AdditionalBrowserArguments = "--enable-gpu"
-                    });
+    // 1. تعطيل التدقيق الإملائي (Spelling Check) نهائياً
+    webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+    await webView.CoreWebView2.Profile.SetPermissionStateAsync(CoreWebView2PermissionKind.Autofill, CoreWebView2PermissionState.Deny);
 
-                await webView.EnsureCoreWebView2Async(env);
+    // 2. حقن كود CSS و JS لتحسين الأداء عند تحميل أي صفحة
+    webView.CoreWebView2.NavigationCompleted += async (s, e) =>
+    {
+        // تعطيل التدقيق الإملائي داخل حقل الكتابة في ChatGPT
+        await webView.CoreWebView2.ExecuteScriptAsync(@"
+            const style = document.createElement('style');
+            style.innerHTML = '*{ spellcheck: false !important; content-visibility: auto !important; }';
+            document.head.appendChild(style);
+            
+            // محاولة إيقاف التدقيق في مربعات النص
+            setInterval(() => {
+                const textareas = document.querySelectorAll('textarea, div[contenteditable]');
+                textareas.forEach(el => {
+                    if(el.getAttribute('spellcheck') !== 'false') {
+                        el.setAttribute('spellcheck', 'false');
+                    }
+                });
+            }, 2000);
+        ");
+    };
 
-                webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
-                webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-
-                webView.CoreWebView2.Navigate("https://chat.openai.com");
-
-                webView.CoreWebView2.NavigationCompleted += async (s, e) =>
-                {
-                    await InjectPerformanceScript();
-                };
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("WebView2 Error:\n" + ex.Message);
-            }
-        }
+    webView.Source = new Uri("https://chatgpt.com");
+}
 
         private async System.Threading.Tasks.Task InjectPerformanceScript()
         {
