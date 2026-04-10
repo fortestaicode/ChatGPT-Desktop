@@ -1,22 +1,31 @@
-name: Build ChatGPT App
-on: [push]
+name: Build ChatGPT Desktop App
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-    - uses: actions/checkout@v4 # تحديث للنسخة 4
-    
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4 # تحديث للنسخة 4
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    - name: Build EXE
-      run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
+    - name: Restore
+      run: dotnet restore
+
+    - name: Publish EXE (Single File)
+      run: dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4 # هذا هو التحديث المطلوب لحل الخطأ
+      uses: actions/upload-artifact@v4
       with:
-        name: ChatGPT-Lite-EXE
-        path: ./publish/*.exe
+        name: ChatGPT-App
+        path: bin/Release/net8.0-windows/win-x64/publish/
