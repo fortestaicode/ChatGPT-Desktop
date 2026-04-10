@@ -1,14 +1,14 @@
 name: Build ChatGPT App
-on: [push] # سيبدأ البناء تلقائياً بمجرد حفظ الملفات
+on: [push]
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4 # تحديث للنسخة 4
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4 # تحديث للنسخة 4
       with:
         dotnet-version: 8.0.x
 
@@ -16,7 +16,7 @@ jobs:
       run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4 # هذا هو التحديث المطلوب لحل الخطأ
       with:
         name: ChatGPT-Lite-EXE
         path: ./publish/*.exe
