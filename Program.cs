@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace ChatGPTApp
+namespace ChatGPTLite
 {
     internal static class Program
     {
