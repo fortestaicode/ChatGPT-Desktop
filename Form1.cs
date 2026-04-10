@@ -9,11 +9,14 @@ namespace ChatGPTApp
     {
         private WebView2? webView; // Nullable لتجنب CS8618
 
-        public Form1()
-        {
-            InitializeComponent();
-            InitWebView();
-        }
+public Form1()
+{
+    this.Text = "ChatGPT Lite";
+    this.Width = 1000;
+    this.Height = 800;
+
+    InitWebView();
+}
 
         private async void InitWebView()
         {
@@ -40,6 +43,7 @@ namespace ChatGPTApp
                 webView.CoreWebView2.Settings.IsScriptEnabled = true;
                 webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
                 // تحميل ChatGPT
                 webView.CoreWebView2.Navigate("https://chat.openai.com");
